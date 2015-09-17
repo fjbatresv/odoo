@@ -84,14 +84,16 @@ class mrp_product_produce(osv.osv_memory):
         """
         if context is None:
             context = {}
-        prod = self.pool.get('mrp.production').browse(cr, uid,
-                                context['active_id'], context=context)
         done = 0.0
-        for move in prod.move_created_ids2:
-            if move.product_id == prod.product_id:
-                if not move.scrapped:
-                    done += move.product_uom_qty # As uom of produced products and production order should correspond
-        return prod.product_qty - done
+        if 'active_id' in context:#When you update an inherit class this is necesary
+            prod = self.pool.get('mrp.production').browse(cr, uid,
+                                context['active_id'], context=context)
+            for move in prod.move_created_ids2:
+                if move.product_id == prod.product_id:
+                    if not move.scrapped:
+                        done += move.product_uom_qty # As uom of produced products and production order should correspond
+            done = prod.product_qty - done
+        return done
 
     def _get_product_id(self, cr, uid, context=None):
         """ To obtain product id
